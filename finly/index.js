@@ -1,16 +1,18 @@
 const express = require('express');
 const morgan = require('morgan');
 const session = require('express-session');
+const flash = require('connect-flash');
 
 require('dotenv').config();
 require('./libs/dbConnect');
 
-const userRouter = require('./routes/user.route');
 
+const { verifyUser } = require('./libs/middleware');
+const userRouter = require('./routes/user.route');
 const dashboardRouter = require('./routes/dashboard.route');
+
 const app = express();
 
-const flash = require('connect-flash');
 
 app.set('views', './views');
 app.set('view engine', 'ejs');
@@ -31,7 +33,7 @@ app.use(
 app.use(flash());
 
 app.use('/users', userRouter);
-app.use('/dashboard', dashboardRouter);
+app.use('/dashboard', verifyUser, dashboardRouter);
 
 
 app.get('*', (req, res) => {
