@@ -1,6 +1,8 @@
 
 const Customer = require('../libs/models/customer.model');
 
+const Invoice = require('../libs/models/invoice.model');
+
 const { body, validationResult } = require('express-validator');
 
 const validateCustomer = [
@@ -79,13 +81,15 @@ res.redirect('/dashboard/customers');
 const deleteCustomer = async (req, res) => {
 const customerId = req.params.id
 
+await Invoice.deleteMany({customer: customerId});
 await Customer.findByIdAndDelete(customerId);
 req.flash('info', {
-    message: 'Customer Deleted',
-    type: 'success'
+message: 'Customer Deleted',
+type: 'success'
 });
 res.redirect('/dashboard/customers');
 };
+
 
 module.exports = {
 showCustomers,
