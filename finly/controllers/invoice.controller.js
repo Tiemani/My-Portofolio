@@ -1,6 +1,7 @@
 const Customer = require('../libs/models/customer.model');
 const Invoice = require('../libs/models/invoice.model');
 const { body, validationResult } = require('express-validator');
+const { USDollar } = require('../libs/formatter');
 
 const validateInvoice = [
     body('customer', 'Select the Customer').notEmpty(),
@@ -20,18 +21,38 @@ const populateInvoices = query => {
         
 const showInvoices = async (req, res) => {
         const query = { owner: req.session.userId };
-        const invoices = await Invoice.find(query);
+        const invoices = await populateInvoices(Invoice.find(query));
         res.render('pages/invoices', {
         title: 'Invoices',
         type: 'data',
         invoices,
+        USDollar,
         info: req.flash('info')[0],
         });
         };
 
-const invoices = await populateInvoices(Invoice.find(query));
 
-const createInvoice = async (req, res) => {
+const getCustomers = async (req, res, next) => {
+    const customersQuery = { owner: req.session.userId };
+    const customers = await Customer.find(customersQuery);
+    req.customers = customers;
+    next();
+    };
+
+    const editInvoice = async (req, res) => {
+        const invoiceId = req.params.id;
+        const invoice = await populateInvoices(Invoice.findById(invoiceId));
+        const { customers } = req;
+        res.render('pages/invoices', {
+        title: 'Edit Invoice',
+        type: 'form',
+            formAction: 'edit',
+            customers,
+            invoice: req.flash('data')[0] || invoice,
+            errors: req.flash('errors'),
+            });
+            };
+    const createInvoice = async (req, res) => {
     const validationErrors = validationResult(req);
     if (!validationErrors.isEmpty()) {
     const errors = validationErrors.array();
@@ -48,26 +69,7 @@ const createInvoice = async (req, res) => {
     });res.redirect('/dashboard/invoices');
     };
 
-    const getCustomers = async (req, res, next) => {
-        const customersQuery = { owner: req.session.userId };
-        const customers = await Customer.find(customersQuery);
-        req.customers = customers;
-        next();
-        };
 
-const editInvoice = async (req, res) => {
-        const invoiceId = req.params.id;
-        const invoice = await populateInvoices(Invoice.findById(invoiceId));
-        const { customers } = req;
-        res.render('pages/invoices', {
-        title: 'Edit Invoice',
-        type: 'form',
-            formAction: 'edit',
-            customers,
-            invoice: req.flash('data')[0] || invoice,
-            errors: req.flash('errors'),
-            });
-            };
 
 
 const updateInvoice = async (req, res) => {
@@ -80,6 +82,7 @@ return res.redirect('edit');
 }
 const invoiceId = req.params.id;
 const data = req.body;
+
 await Invoice.findByIdAndUpdate(invoiceId, data)
 req.flash('info', {
 message: 'Invoice Updated',
