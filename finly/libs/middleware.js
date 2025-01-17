@@ -1,13 +1,14 @@
 const verifyUser = (req, res, next) => {
     if (!req.session.userId) return res.redirect('/login');
     next();
-    };
-const redirectAuthenticated = (req, res, next) => {
+  };
+  
+  const redirectAuthenticated = (req, res, next) => {
     if (req.session.userId) return res.redirect('/dashboard');
     next();
-    };
-module.exports = {
+  };
+  
+  module.exports = {
     verifyUser,
     redirectAuthenticated
-    };
-
+  };
