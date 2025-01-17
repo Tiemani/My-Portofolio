@@ -1,11 +1,14 @@
 const express = require('express');
 const router = express.Router();
 
-router.get('/', (req, res) => {
-  res.render('pages/dashboard', {
-    title: 'Dashboard',
-    info: req.flash('info')[0],
-  });
-});
+const customersRouter = require('./customer.route');
+const invoicesRouter = require('./invoice.route');
+
+const { showDashboard } = require('../controllers/dashboard.controller');
+
+router.get('/', showDashboard);
+
+router.use('/customers', customersRouter);
+router.use('/invoices', invoicesRouter);
 
 module.exports = router;
